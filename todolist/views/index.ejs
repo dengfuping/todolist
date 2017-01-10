@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="shortcut icon" href="/images/favicon.ico" />
+    <link rel="bookmark" href="/images/favicon.ico" />
+    <title>首页 | 登录</title>
+    <link rel='stylesheet' href='/stylesheets/style.css'/>
+    <link rel='stylesheet' href='/stylesheets/bootstrap.min.css'/>
+    <link rel='stylesheet' href='/stylesheets/font-awesome.min.css'/>
+</head>
+<body>
+<h1 style="text-align: center">ToDoList 用户登录</h1>
+<br/><br/>
+
+<form action="/signin" method="post">
+    <div class="input-group">
+        <div class="input-group-addon"><span class="glyphicon glyphicon-user"></span> </div>
+        <input type="text" id="username" name="username" class="form-control" placeholder="用户名"/>
+
+    </div>
+    <br/>
+    <div class="input-group">
+        <div class="input-group-addon"><span class="glyphicon glyphicon-lock"></span> </div>
+        <input type="password" id="password" name="password" class="form-control" placeholder="密 码"/>
+    </div>
+    <!--<p>
+        <label for="username">用户名：</label>
+        <input type="text" id="username" name="username" class="form-control" placeholder="用户名"/>
+    </p>
+    <p>
+        <label for="password">密 码：</label>
+        <input type="password" id="password" name="password" class="form-control" placeholder="密 码"/>
+    </p>-->
+    <br/>
+    <input type="submit" class="form-control btn btn-success" value="登 录"/>
+</form>
+
+<br/>
+<p style="text-align: right">还没注册？<a href="/signup">快去注册</a></p>
+
+
+<script src="/javascripts/jquery.min.js"></script>
+<script src="/javascripts/bootstrap.min.js"></script>
+</body>
+</html>

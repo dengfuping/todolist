@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <link rel="shortcut icon" href="/images/favicon.ico"/>
+    <link rel="bookmark" href="/images/favicon.ico"/>
+    <title><%= title %> | ToDoList</title>
+    <link rel='stylesheet' href='/stylesheets/style.css'/>
+    <link rel='stylesheet' href='/stylesheets/bootstrap.min.css'/>
+    <link rel='stylesheet' href='/stylesheets/font-awesome.min.css'/>
+</head>
+<body>
+
+<nav class="navbar navbar-default navbar-fixed-top" style="background-color: #f6f6f6; border: none;box-shadow: 0px 2px 8px 0px rgba(50,50,50,0.25);" role="navigation">
+    <div class="container">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="">
+                <img alt="网站Logo" src="/images/logo.png" style="margin-top: 0px"/>
+            </a>
+            <a class="navbar-brand" href="">
+                ToDoList
+            </a>
+        </div>
+        <ul class="nav navbar-nav navbar-right">
+            <li><a href="/" style="font-size: 16px"><span class="glyphicon glyphicon-off"></span>&nbsp; 注 销</a></li>
+        </ul>
+    </div>
+</nav>
+
+<center><h3><span class="glyphicon glyphicon-user"></span> <a href="#" id="username"><%= username %></a>，欢迎您</h3>
+</center>
+<div class="table-responsive container">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4><span class="glyphicon glyphicon-folder-open"></span>&nbsp;&nbsp; 添加事项</h4>
+        </div>
+        <div class="panel-body" id="addTodolistPanelBody">
+            <table class="table table-bordered table-striped">
+                <tbody style="text-align: center">
+                <form>
+                    <tr>
+                        <td style="font-size: 15px;line-height: 30px;"><label class="control-label"
+                                                                              for="title">待办事项</label></td>
+                        <td><input type="text" name="title" id="title" class="form-control"/></td>
+                    </tr>
+                    <tr>
+                        <td style="font-size: 15px;line-height: 30px;"><label class="control-label" for="description">详细描述</label>
+                        </td>
+                        <td><input type="text" name="description" id="description" class="form-control"/></td>
+                        <!--<td><textarea class="form-control" name="description" id="description"></textarea> </td>-->
+                    </tr>
+
+                    <tr>
+                        <td style="font-size: 15px;line-height: 30px;"><label class="control-label"
+                                                                              for="deadline">日期</label></td>
+                        <td><input type="date" name="deadline" id="deadline" class="form-control"/></td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <button id="addTodolist" class="btn btn-primary" style="width: 1100px;font-size: 15px">添 加
+                            </button>
+                        </td>
+                    </tr>
+                </form>
+                </tbody>
+            </table>
+
+        </div>
+    </div>
+</div>
+
+<br/><br/>
+<div class="container">
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h4><span class="glyphicon glyphicon-th-list"></span>&nbsp;&nbsp; ToDoList（Hint：（1）下拉菜单可以对ToDoLIst进行筛选；（2）有多个操作的是未完成事项，只有“删除”操作的是已完成事项）</h4>
+            <select class="form-control" style="width: 300px;" id="select">
+                <option value="2">全部事项</option>
+                <option value="1">已完成事项</option>
+                <option value="0">未完成事项</option>
+            </select>
+        </div>
+        <div class="panel-body" id="showTodolistPanelBody">
+            <table class="table table-bordered table-striped">
+                <tbody style="text-align: center" id="todolist">
+                <tr class="info">
+                    <td>待办事务</td>
+                    <td>详细描述</td>
+                    <td>日 期</td>
+                    <!--<td>完成状态</td>-->
+                    <td>操 作</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+<script src="/javascripts/jquery.min.js"></script>
+<script src="/javascripts/bootstrap.min.js"></script>
+<script src="/javascripts/moment.js"></script>
+<script>
+    $(function () {
+        var dateFormat = function (date) {
+            var year = date.getFullYear();
+            var month = date.getMonth() + 1;
+            var day = date.getDay();
+            return year + '-' + month + '-' + day;
+        };
+
+        var clearTodolist = function () {
+            $("#todolist > tr").nextAll().remove();
+        }
+
+        var username = $("#username").text();
+
+        var getTodolist = function () {
+            var getTodolistUrl = "/user/" + username + "/todolist";
+            $.get(getTodolistUrl, function (data, status) {
+                console.log(data);
+                clearTodolist();
+                for (var i = 0; i < data.length; i++) {
+                    var deadline = moment(data[i].deadline);
+                    var formated_deadline = deadline.format("YYYY-MM-DD");
+                    $("#todolist").append('<tr><td style="line-height: 35px">' + data[i].title + '</td><td style="line-height: 35px">' + data[i].description + '</td> <td style="line-height: 35px">' + formated_deadline + '</td><td style="line-height: 35px"><a href=""> <button class="btn btn-danger">删 除</button></a></td></tr>');
+                }
+            });
+        };
+
+        var getTodolistOnChange = function () {
+            $("#select").change(function () {
+                var value = $("#select>option:selected").attr("value");
+                var url = "/user/" + username + "/todolist?value=" + value;
+                $.get(url, function (data, status) {
+                    console.log(data);
+                    clearTodolist();
+                    for (var i = 0; i < data.length; i++) {
+                        var deadline = moment(data[i].deadline);
+                        var formated_deadline = deadline.format("YYYY-MM-DD");
+                        // 显示未完成事项
+                        if (value == 0) {
+                            $("#todolist").append('<tr><td style="line-height: 35px">' + data[i].title + '</td><td style="line-height: 35px">' + data[i].description + '</td> <td style="line-height: 35px">' + formated_deadline + '</td><td style="line-height: 35px"><a href="" style="margin-right: 20px"> <button class="btn btn-success">编 辑</button></a><a href=""> <button class="btn btn-danger">删 除</button></a></td></tr>');
+
+                        }
+                        // 显示已完成事项
+                        else if (value == 1) {
+                            $("#todolist").append('<tr><td style="line-height: 35px">' + data[i].title + '</td><td style="line-height: 35px">' + data[i].description + '</td> <td style="line-height: 35px">' + formated_deadline + '</td><td style="line-height: 35px"><a href=""> <button class="btn btn-danger">删 除</button></a></td></tr>');
+
+                        }
+                        // 显示全部事项
+                        else if (value == 2) {
+                            $("#todolist").append('<tr><td style="line-height: 35px">' + data[i].title + '</td><td style="line-height: 35px">' + data[i].description + '</td> <td style="line-height: 35px">' + formated_deadline + '</td><td style="line-height: 35px"><a href=""> <button class="btn btn-danger">删 除</button></a></td></tr>');
+
+                        }
+                    }
+                });
+            })
+        };
+
+        var showTodolist = function (data) {
+            clearTodolist();
+            for (var i = 0; i < data.length; i++) {
+                var deadline = moment(data[i].deadline);
+                var formated_deadline = deadline.format("YYYY-MM-DD");
+                if (data[i].state == 0)
+                    $("#todolist").append('<tr><td class="title" style="line-height: 35px">' + data[i].title + '</td><td class="description" style="line-height: 35px">' + data[i].description + '</td> <td class="deadline" style="line-height: 35px">' + formated_deadline + '</td><td class="multiOperation" style="line-height: 35px"><button class="btn btn-success editTodolist" style="margin-right: 20px">修 改</button><button class="btn btn-primary setTodolistCompleted" style="margin-right: 20px">完 成</button> <button class="btn btn-danger deleteTodolist">删 除</button></td></tr>');
+                else if (data[i].state == 1)
+                    $("#todolist").append('<tr><td class="title" style="line-height: 35px">' + data[i].title + '</td><td class="description" style="line-height: 35px">' + data[i].description + '</td> <td class="deadline" style="line-height: 35px">' + formated_deadline + '</td><td style="line-height: 35px"><button class="btn btn-danger deleteTodolist" style="width: 220px">删 除</button></td></tr>');
+            }
+
+
+        };
+
+        // 添加Todolist
+        var addTodolistUrl = "/user/" + username + "/todolist";
+        $("#addTodolist").click(function () {
+            var title = $("#title").val();
+            var description = $("#description").val();
+            var deadline = $("#deadline").val();
+
+            if (title == '')
+                alert('标题不能为空！');
+            if (description == '')
+                alert('详细描述不能为空！');
+            if (deadline == '')
+                alert('日期不能为空！');
+            if (title != '' && description != '' && deadline != '') {
+                var todolist = {
+                    title: title,
+                    description: description,
+                    deadline: deadline
+                };
+
+                $.post(addTodolistUrl, todolist, function (data, status) {
+                    if (data == 'success'){
+                        $("#addTodolistPanelBody").append('<div class="alert alert-success alert-dismissible" role="alert"> <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button> <strong>添加成功！</strong>恭喜，您的事项已成功添加。</div>');
+                        var getTodolistUrl = "/user/" + username + "/todolist";
+                        $.get(getTodolistUrl, function (data, status) {
+                            console.log(data);
+                            showTodolist(data);
+                            /*clearTodolist();
+                            for (var i = 0; i < data.length; i++) {
+                                var deadline = moment(data[i].deadline);
+                                var formated_deadline = deadline.format("YYYY-MM-DD");
+                                $("#todolist").append('<tr><td style="line-height: 35px">' + data[i].title + '</td><td style="line-height: 35px">' + data[i].description + '</td> <td style="line-height: 35px">' + formated_deadline + '</td><td style="line-height: 35px"><a href="" style="margin-right: 20px"> <button class="btn btn-success editTodolist">编 辑</button></a><a href=""> <button class="btn btn-danger">删 除</button></a></td></tr>');
+                            }*/
+                        });
+
+                        $("#title").val('');
+                        $("#description").val('');
+                        $("#deadline").val('');
+
+                    }
+
+                    else {
+                        $("#addTodolistPanelBody").append('<div class="alert alert-danger alert-dismissible" role="alert"> <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button> <strong>添加失败！</strong>很遗憾，您的事项添加失败。</div>');
+
+                    }
+
+                })
+            }
+            return false;
+        });
+
+        // 获取Todolist
+        var getTodolistUrl = "/user/" + username + "/todolist";
+        $.get(getTodolistUrl, function (data, status) {
+            console.log(data);
+            showTodolist(data);
+            /*clearTodolist();
+            for (var i = 0; i < data.length; i++) {
+                var deadline = moment(data[i].deadline);
+                var formated_deadline = deadline.format("YYYY-MM-DD");
+                if (data[i].state == 0)
+                    $("#todolist").append('<tr><td style="line-height: 35px">' + data[i].title + '</td><td style="line-height: 35px">' + data[i].description + '</td> <td style="line-height: 35px">' + formated_deadline + '</td><td style="line-height: 35px"><a href="" style="margin-right: 20px"> <button class="btn btn-success editTodolist">编 辑</button></a><a href=""> <button class="btn btn-danger deleteTodolist">删 除</button></a></td></tr>');
+                else if (data[i].state == 1)
+                    $("#todolist").append('<tr><td style="line-height: 35px">' + data[i].title + '</td><td style="line-height: 35px">' + data[i].description + '</td> <td style="line-height: 35px">' + formated_deadline + '</td><td style="line-height: 35px"><a href=""> <button class="btn btn-danger deleteTodolist" style="width: 140px">删 除</button></a></td></tr>');
+            }*/
+        });
+
+        // 删除Todolist
+        $("#todolist").on("click", ".deleteTodolist", function () {
+            var title = $(this).parents("tr").find(".title").text();
+            var description = $(this).parents("tr").find(".description").text();
+            var deadline = $(this).parents("tr").find(".deadline").text();
+            var value = $("#select>option:selected").attr("value");
+
+            var deleteTodolistUrl = "/user/" + username + "/deleteTodolist";
+            var todolist = {
+                title: title,
+                description: description,
+                deadline: deadline
+            };
+
+            $.post(deleteTodolistUrl, todolist, function (data, status) {
+                if (data == 'success'){
+                    $("#showTodolistPanelBody").append('<div class="alert alert-success alert-dismissible" role="alert"> <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button> <strong>删除成功！</strong>恭喜，您的事项已成功删除。</div>');
+                    var getTodolistUrl = "/user/" + username + "/todolist?value=" + value;
+
+                    $.get(getTodolistUrl, function (data, status) {
+                        console.log(data);
+                        showTodolist(data);
+                    });
+                }
+            });
+
+        });
+
+        // 编辑Todolist
+        $("#todolist").on("click", ".editTodolist", function () {
+            var title = $(this).parents("tr").find(".title").text();
+            var description = $(this).parents("tr").find(".description").text();
+            var deadline = $(this).parents("tr").find(".deadline").text();
+            var value = $("#select>option:selected").attr("value");
+
+            $(this).parents("tr").find(".title").html('<input type="text" class="form-control newTitle" style="text-align: center" value="' + title + '"/>');
+            $(this).parents("tr").find(".description").html('<input type="text" class="form-control newDescription" style="text-align: center" value="' + description + '"/>');
+            $(this).parents("tr").find(".deadline").html('<input type="date" class="form-control newDeadline" style="text-align: center" value="' + deadline + '"/>');
+            $(this).parents("tr").find(".multiOperation").html('<center><button class="btn btn-info confirmEdit" style="margin-right: 20px; width: 100px;">确认修改</button> <button class="btn btn-warning cancelEdit" style="width: 100px">取消修改</button></center>');
+
+            $("#todolist").on("click", ".cancelEdit", function () {
+                $(this).parents("tr").find(".title").text(title);
+                $(this).parents("tr").find(".description").text(description);
+                $(this).parents("tr").find(".deadline").text(deadline);
+                $(this).parents("tr").find(".multiOperation").html('<button class="btn btn-success editTodolist" style="margin-right: 20px">编 辑</button><button class="btn btn-primary setTodolistCompleted" style="margin-right: 20px">完 成</button> <button class="btn btn-danger deleteTodolist">删 除</button>');
+            });
+
+            $("#todolist").on("click", ".confirmEdit", function () {
+                var newTitle = $(this).parents("tr").find(".newTitle").val();
+                var newDescription = $(this).parents("tr").find(".newDescription").val();
+                var newDeadline = $(this).parents("tr").find(".newDeadline").val();
+                var value = $("#select>option:selected").attr("value");
+
+                var editTodolistUrl = "/user/" + username + "/editTodolist";
+                var todolist = {
+                    title: title,
+                    description: description,
+                    deadline: deadline,
+                    newTitle: newTitle,
+                    newDescription: newDescription,
+                    newDeadline: newDeadline
+                };
+
+                $.post(editTodolistUrl, todolist, function (data, status) {
+                    if (data == 'success') {
+                        $("#showTodolistPanelBody").append('<div class="alert alert-success alert-dismissible" role="alert"> <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button> <strong>修改成功！</strong>恭喜，您的事项已成功修改。</div>');
+                        var getTodolistUrl = "/user/" + username + "/todolist?value=" + value;
+
+                        $.get(getTodolistUrl, function (data, status) {
+                            console.log(data);
+                            showTodolist(data);
+                        });
+                    }
+                });
+
+            });
+
+        });
+
+        // 将未完成事件设为已完成事件
+        $("#todolist").on("click", ".setTodolistCompleted", function () {
+            var title = $(this).parents("tr").find(".title").text();
+            var description = $(this).parents("tr").find(".description").text();
+            var deadline = $(this).parents("tr").find(".deadline").text();
+            var value = $("#select>option:selected").attr("value");
+
+            var setTodolistCompletedUrl = "/user/" + username + "/setTodolistCompleted";
+            var todolist = {
+                title: title,
+                description: description,
+                deadline: deadline
+            };
+
+            $.post(setTodolistCompletedUrl, todolist, function (data, status) {
+                if (data == 'success'){
+                    $("#showTodolistPanelBody").append('<div class="alert alert-success alert-dismissible" role="alert"> <button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button> <strong>设置成功！</strong>恭喜，您的事项已成功设置为已完成。</div>');
+                    var getTodolistUrl = "/user/" + username + "/todolist?value=" + value;
+
+                    $.get(getTodolistUrl, function (data, status) {
+                        console.log(data);
+                        showTodolist(data);
+                    });
+
+                }
+            });
+        });
+
+
+        $("#select").change(function () {
+            $("#showTodolistPanelBody .alert").remove();
+            var value = $("#select>option:selected").attr("value");
+            var url = "/user/" + username + "/todolist?value=" + value;
+            $.get(url, function (data, status) {
+                console.log(data);
+                clearTodolist();
+                showTodolist(data);
+                /*for (var i = 0; i < data.length; i++) {
+                    var deadline = moment(data[i].deadline);
+                    var formated_deadline = deadline.format("YYYY-MM-DD");
+                    // 显示未完成事项
+                    if (value == 0) {
+                        $("#todolist").append('<tr><td style="line-height: 35px">' + data[i].title + '</td><td style="line-height: 35px">' + data[i].description + '</td> <td style="line-height: 35px">' + formated_deadline + '</td><td style="line-height: 35px"><a href="" style="margin-right: 20px"> <button class="btn btn-success editTodolist">编 辑</button></a><a href=""> <button class="btn btn-danger deleteTodolist">删 除</button></a></td></tr>');
+
+                    }
+                    // 显示已完成事项
+                    else if (value == 1) {
+                        $("#todolist").append('<tr><td style="line-height: 35px">' + data[i].title + '</td><td style="line-height: 35px">' + data[i].description + '</td> <td style="line-height: 35px">' + formated_deadline + '</td><td style="line-height: 35px"><a href=""> <button class="btn btn-danger deleteTodolist" style="width: 140px">删 除</button></a></td></tr>');
+
+                    }
+                    // 显示全部事项
+                    else if (value == 2) {
+                        // 如果是未完成事项
+                        if (data[i].state == 0)
+                            $("#todolist").append('<tr><td style="line-height: 35px">' + data[i].title + '</td><td style="line-height: 35px">' + data[i].description + '</td> <td style="line-height: 35px">' + formated_deadline + '</td><td style="line-height: 35px"><a href="" style="margin-right: 20px"> <button class="btn btn-success editTodolist">编 辑</button></a><a href=""> <button class="btn btn-danger deleteTodolist">删 除</button></a></td></tr>');
+                        else if (data[i].state == 1)
+                            $("#todolist").append('<tr><td style="line-height: 35px">' + data[i].title + '</td><td style="line-height: 35px">' + data[i].description + '</td> <td style="line-height: 35px">' + formated_deadline + '</td><td style="line-height: 35px"><a href=""> <button class="btn btn-danger deleteTodolist" style="width: 140px">删 除</button></a></td></tr>');
+                    }
+                }*/
+            });
+        })
+    });
+</script>
+</body>
+</html>
